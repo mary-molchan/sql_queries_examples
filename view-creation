@@ -1,0 +1,13 @@
+USE [AdventureWorks2019]
+GO
+
+-- Displaying the number of customers for each territory including the name of the territory --
+CREATE VIEW NumberCust AS
+	SELECT [Name] AS [Territory name], count([CustomerID]) AS [Amount of customers]
+	FROM [Sales].[SalesTerritory] AS sc
+	JOIN [Sales].[Customer] AS st 
+	ON sc.[TerritoryID] = st.[TerritoryID]
+	GROUP BY [Name]
+;
+SELECT * FROM NumberCust
+GO
