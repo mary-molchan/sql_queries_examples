@@ -1,0 +1,31 @@
+USE [AdventureWorks2019] -- choose the database to use
+GO
+
+SELECT * FROM [HumanResources].[Department] -- select column names for back up deleted from table data
+GO
+
+SELECT * INTO HR_copy -- make a full copy of the original table on which triggers already exist 
+FROM [HumanResources].[Department] -- existing table with triggers
+  
+CREATE TABLE [DeletedHR]( -- creating a backup table for copying deleted data
+	DelDepartmentID Int,
+	DelName nvarchar(30),
+	DelGroupName nvarchar(50),
+	DelDate datetime2)
+GO
+
+CREATE TRIGGER trgDelete -- create 'After Trigger' for HR_copy table without any triggers
+ON HR_copy
+AFTER DELETE
+AS
+	UPDATE [DeletedHR]
+	SET DelDate = GETDATE()
+	INSERT INTO [DeletedHR] -- copy of deleted data execution
+	SELECT * FROM deleted -- from 'deleted' virtual table
+
+DELETE FROM HR_copy -- delete data from a table to run a trigger
+
+SELECT * FROM HR_copy -- check if there is data in the table
+
+SELECT * FROM [DeletedHR] -- check the insertion of the deleted data into the backup table
+GO
