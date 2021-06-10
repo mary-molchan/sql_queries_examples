@@ -1,0 +1,14 @@
+USE [AdventureWorks2019] -- choose the database to use
+GO
+
+SELECT * FROM [Person].[Address] -- check the presence of this table and the data in it
+GO
+
+CREATE PROCEDURE sp_ChangeCity -- create a procedure with UPPER() Function 
+AS
+	SELECT UPPER(City) AS [Upper Case] -- create an alias for the column name
+	FROM [Person].[Address]
+GO
+
+EXEC sp_ChangeCity -- run the procedure and check the execution
+GO
