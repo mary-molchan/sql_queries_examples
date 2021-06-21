@@ -1,0 +1,10 @@
+USE [AdventureWorks2019] -- choose the database to use
+GO
+
+SELECT [NationalIDNumber] AS [Employee ID], [LoginID], [OrganizationLevel], [JobTitle]
+FROM [HumanResources].[Employee]
+GROUP BY CUBE
+(
+	([NationalIDNumber]), ([LoginID]), ([OrganizationLevel]), ([JobTitle]))
+ORDER BY [NationalIDNumber] DESC
+GO
