@@ -1,0 +1,26 @@
+SELECT [FactCallCenterID]
+      ,[NewDateKey] = DATEFROMPARTS(SUBSTRING(CAST([DateKey] AS varchar), 1, 4)
+							       ,SUBSTRING(CAST([DateKey] AS varchar), 5, 2)
+							       ,SUBSTRING(CAST([DateKey] AS varchar), 7, 2))
+      ,[WageType]
+      ,[Shift]
+      ,[LevelOneOperators]
+      ,[LevelTwoOperators]
+      ,[TotalOperators]
+      ,[Calls]
+      ,[AutomaticResponses]
+      ,[Orders]
+      ,[IssuesRaised]
+      ,[AverageTimePerIssue]
+      ,[ServiceGrade]
+      ,[Date]
+	  ,[AvgCallMonth] = AVG(Calls) OVER (PARTITION BY datepart(MONTH, Date))  -- 2. AVG кількість дзвінків за кожен місяць кожного року
+	  ,[AvgOrdOperator] = SUM(Orders) OVER() / SUM(TotalOperators) OVER() -- 3. AVG кількість ордерів на оператора
+	  ,[MaxScoreByDay] = MAX(ServiceGrade) OVER (PARTITION BY Date ORDER BY WageType) -- 4. MAX оцінка сервісу в БУДНІЙ та ВИХІДНИЙ день на кожну дату
+      ,[MaxLevelOper] = CASE WHEN SUM(LevelOneOperators) OVER (PARTITION BY [Shift] ORDER BY [Shift]) > 
+						SUM([LevelTwoOperators]) OVER(PARTITION BY [Shift] ORDER BY [Shift]) 
+						THEN 'Level One' ELSE 'Level Two' END -- 5. операторів якого рівня більше ЗАГАЛОМ на кожен shift
+	  ,[MinTime] = MIN(AverageTimePerIssue) OVER (PARTITION BY datepart(YEAR, Date))-- 6. MIN час вирішення проблеми за кожен рік
+
+ FROM [AdventureWorksDW2016].[dbo].[FactCallCenter]
+ GO
