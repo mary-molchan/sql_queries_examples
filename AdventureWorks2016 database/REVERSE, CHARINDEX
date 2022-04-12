@@ -1,0 +1,28 @@
+WITH cte_sales_territory AS(
+	SELECT [SalesTerritoryKey]
+		  ,[SalesTerritoryRegion]
+		  ,[SalesTerritoryCountryGroup] = CONCAT_WS(',', [SalesTerritoryCountry], [SalesTerritoryGroup])
+	FROM [AdventureWorksDW2016].[dbo].[DimSalesTerritory])
+
+
+SELECT [SalesTerritoryCountryGroup]
+			  ,REVERSE([SalesTerritoryCountryGroup])
+			  ,CHARINDEX(',', REVERSE([SalesTerritoryCountryGroup]))
+			  ,CHARINDEX(',', REVERSE([SalesTerritoryCountryGroup])) - 1
+			  ,RIGHT([SalesTerritoryCountryGroup], CHARINDEX(',', REVERSE([SalesTerritoryCountryGroup])) - 1)
+FROM cte_sales_territory
+
+--
+
+WITH cte_sales_territory AS(
+	SELECT [SalesTerritoryKey]
+		  ,[SalesTerritoryRegion]
+		  ,[SalesTerritoryCountryGroup] = CONCAT_WS(',', [SalesTerritoryCountry], [SalesTerritoryGroup])
+	FROM [AdventureWorksDW2016].[dbo].[DimSalesTerritory])
+
+
+SELECT [SalesTerritoryCountryGroup]
+	  ,CHARINDEX(',', [SalesTerritoryCountryGroup])
+	  ,CHARINDEX(',', [SalesTerritoryCountryGroup]) - 1
+	  ,LEFT([SalesTerritoryCountryGroup], CHARINDEX(',', [SalesTerritoryCountryGroup]) - 1)
+FROM cte_sales_territory
