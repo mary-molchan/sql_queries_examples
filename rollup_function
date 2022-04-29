@@ -1,9 +1,0 @@
-USE [AdventureWorks2019] -- choose the database to use
-GO
-
-SELECT [NationalIDNumber] AS [Employee ID], [LoginID], [OrganizationLevel], [JobTitle]
-FROM [HumanResources].[Employee]
-GROUP BY ROLLUP
-(
-	([NationalIDNumber]), ([LoginID]), ([OrganizationLevel]), ([JobTitle]));
-GO
