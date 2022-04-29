@@ -1,0 +1,125 @@
+# Create your own partitions in database (NameSurname_ParititionDB), partition function, scheme and table
+
+CREATE DATABASE MarynaMolchan_PartitionDB  -- create database for partition tasks
+GO
+
+ALTER DATABASE MarynaMolchan_PartitionDB  -- create four filegroups
+	ADD FILEGROUP firstgroup
+GO
+ALTER DATABASE MarynaMolchan_PartitionDB
+	ADD FILEGROUP secondgroup
+GO
+ALTER DATABASE MarynaMolchan_PartitionDB
+	ADD FILEGROUP thirdgroup
+GO
+ALTER DATABASE MarynaMolchan_PartitionDB
+	ADD FILEGROUP fourthgroup
+GO
+
+ALTER DATABASE MarynaMolchan_PartitionDB  -- add one file to each filegroup
+ADD FILE
+(
+	NAME = firsttest,
+	FILENAME = 'C:\Program Files\Microsoft SQL Server\MSSQL15.MSSQLSERVER\MSSQL\DATA\firsttest.ndf',
+	SIZE = 5MB,
+	MAXSIZE = 100MB,
+	FILEGROWTH = 5MB
+)
+TO FILEGROUP firstgroup; 
+GO
+ALTER DATABASE MarynaMolchan_PartitionDB
+ADD FILE
+(
+	NAME = secondtest,
+	FILENAME = 'C:\Program Files\Microsoft SQL Server\MSSQL15.MSSQLSERVER\MSSQL\DATA\secondtest.ndf',
+	SIZE = 5MB,
+	MAXSIZE = 100MB,
+	FILEGROWTH = 5MB
+)
+TO FILEGROUP secondgroup; 
+GO
+ALTER DATABASE MarynaMolchan_PartitionDB
+ADD FILE
+(
+	NAME = thirdtest,
+	FILENAME = 'C:\Program Files\Microsoft SQL Server\MSSQL15.MSSQLSERVER\MSSQL\DATA\thirdtest.ndf',
+	SIZE = 5MB,
+	MAXSIZE = 100MB,
+	FILEGROWTH = 5MB
+)
+TO FILEGROUP thirdgroup; 
+GO
+ALTER DATABASE MarynaMolchan_PartitionDB
+ADD FILE
+(
+	NAME = fourth,
+	FILENAME = 'C:\Program Files\Microsoft SQL Server\MSSQL15.MSSQLSERVER\MSSQL\DATA\fourthtest.ndf',
+	SIZE = 5MB,
+	MAXSIZE = 100MB,
+	FILEGROWTH = 5MB
+)
+TO FILEGROUP fourthgroup; 
+GO
+
+USE MarynaMolchan_PartitionDB  -- make sure you use the correct DB for further work
+GO
+
+CREATE PARTITION FUNCTION  maryna_PF(int) -- create a partition function and choose a step size
+	AS RANGE LEFT FOR VALUES(5, 10, 15) ;
+GO
+
+ CREATE PARTITION SCHEME maryna_PS  -- -- create a partition scheme for filegroups
+	AS PARTITION maryna_PF
+	TO (firstgroup, secondgroup, thirdgroup, fourthgroup) ;
+GO
+
+CREATE TABLE dbo.BookStore  -- create table for bookstore 
+   (
+      bookID int IDENTITY (1,1) PRIMARY KEY,
+	  book_name varchar (50),
+      author varchar (50),
+      genre varchar (30),
+	  wholesale_price money,
+	  current_amount int,
+	  total_cost AS (wholesale_price * current_amount)
+      )
+	ON maryna_PS (bookID);
+GO
+
+INSERT INTO dbo.BookStore (book_name, author, genre, wholesale_price, current_amount)  -- fill the store with book data
+	VALUES 
+	('Алмазная колесница', 'Акунин Борис', 'Приключения', 150.00, 43),
+	('Турецкий гамбит', 'Акунин Борис', 'Приключения', 143.00, 18),
+	('Приключения Фандорина', 'Акунин Борис', 'Приключения', 194.00, 25),
+	('Любовник смерти', 'Акунин Борис', 'Приключения', 173.00, 16),
+	('Любовница смерти', 'Акунин Борис', 'Приключения', 162.00, 72),
+	('Голая статистика', 'Уиллан Чарльз', 'Научпоп', 204.00, 13),
+	('Занимательная математика', 'Левшин Александр', 'Детская литература', 98.00, 6),
+	('Мой личный враг', 'Устинова Татьяна', 'Детектив', 147.00, 40),
+	('Запасной инстинкт', 'Устинова Татьяна', 'Детектив', 127.00, 23),
+	('Мой личный враг', 'Устинова Татьяна', 'Детектив', 149.00, 18),
+	('Дом-фантом', 'Устинова Татьяна', 'Детектив', 118.00, 17),
+	('Новогодний детектив', 'Устинова Татьяна', 'Детектив', 172.00, 32),
+	('Детективная история', 'Устинова Татьяна', 'Детектив', 115.00, 26)
+;
+GO 
+
+SELECT * FROM BookStore  -- create a select to make sure the data is in the store table
+GO
+
+-- check boundary values for partitioned table 
+SELECT t.name AS TableName, i.name AS IndexName, p.partition_number, p.partition_id, i.data_space_id, f.function_id, 
+f.type_desc, r.boundary_id, r.value AS BoundaryValue   
+FROM sys.tables AS t  
+JOIN sys.indexes AS i  
+    ON t.object_id = i.object_id  
+JOIN sys.partitions AS p  
+    ON i.object_id = p.object_id AND i.index_id = p.index_id   
+JOIN  sys.partition_schemes AS s   
+    ON i.data_space_id = s.data_space_id  
+JOIN sys.partition_functions AS f   
+    ON s.function_id = f.function_id  
+LEFT JOIN sys.partition_range_values AS r   
+    ON f.function_id = r.function_id and r.boundary_id = p.partition_number  
+WHERE t.name = 'BookStore' AND i.type <= 1  
+ORDER BY p.partition_number; 
