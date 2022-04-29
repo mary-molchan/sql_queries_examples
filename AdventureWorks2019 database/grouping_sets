@@ -1,0 +1,14 @@
+USE [AdventureWorks2019] -- choose the database to use
+GO
+
+SELECT * FROM [HumanResources].[Employee] -- choose a table with enough columns to complete the task
+GO
+
+SELECT [NationalIDNumber] AS [Employee ID], [LoginID] AS [Login], [JobTitle] AS [Position]
+FROM [HumanResources].[Employee]
+GROUP BY GROUPING SETS
+(
+	([NationalIDNumber]),
+	([NationalIDNumber], [LoginID]),
+	([NationalIDNumber], [LoginID]), [JobTitle]);
+GO
